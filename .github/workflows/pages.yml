@@ -1,8 +1,13 @@
 name: Deploy Infallyn to GitHub Pages
 
-# Builds no artifacts: index.html is already the generated single file.
-# configure-pages with enablement:true turns Pages on if it is not already,
-# which is why this exists instead of a one-off API call.
+# index.html is already the generated single file, so there is no build step:
+# this only publishes the app surface (index.html, manifest, assets) from main.
+#
+# Pages must be switched on once by a repo admin (Settings -> Pages ->
+# Source: GitHub Actions). Creating the Pages site is admin-only and cannot be
+# done by the Actions token, so instead of failing on every push this workflow
+# detects that case, posts a notice, and skips. It deploys automatically as
+# soon as Pages is enabled.
 
 on:
   push:
@@ -28,12 +33,26 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Configure Pages
-        uses: actions/configure-pages@v5
-        with:
-          enablement: true
+      - name: Check whether Pages is enabled
+        id: check
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          if gh api "repos/${{ github.repository }}/pages" >/dev/null 2>&1; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+            echo "Pages site found."
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "::notice title=GitHub Pages not enabled::Turn it on at Settings -> Pages -> Source: GitHub Actions. This workflow will deploy on the next push or manual run."
+          fi
 
-      - name: Stage site (app only, no sources or archives)
+      - name: Configure Pages
+        if: steps.check.outputs.enabled == 'true'
+        uses: actions/configure-pages@v5
+
+      - name: Stage site (app only)
+        if: steps.check.outputs.enabled == 'true'
         run: |
           set -euo pipefail
           mkdir -p _site
@@ -44,10 +63,12 @@ jobs:
           grep -q "Infallyn" _site/index.html
 
       - name: Upload artifact
+        if: steps.check.outputs.enabled == 'true'
         uses: actions/upload-pages-artifact@v3
         with:
           path: _site
 
       - name: Deploy to Pages
         id: deployment
+        if: steps.check.outputs.enabled == 'true'
         uses: actions/deploy-pages@v4
