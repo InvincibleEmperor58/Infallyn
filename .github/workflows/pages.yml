@@ -1,0 +1,53 @@
+name: Deploy Infallyn to GitHub Pages
+
+# Builds no artifacts: index.html is already the generated single file.
+# configure-pages with enablement:true turns Pages on if it is not already,
+# which is why this exists instead of a one-off API call.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+        with:
+          enablement: true
+
+      - name: Stage site (app only, no sources or archives)
+        run: |
+          set -euo pipefail
+          mkdir -p _site
+          cp index.html manifest.webmanifest _site/
+          cp -r assets _site/assets
+          touch _site/.nojekyll
+          # Sanity: the single-file build must actually be the app.
+          grep -q "Infallyn" _site/index.html
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - name: Deploy to Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
