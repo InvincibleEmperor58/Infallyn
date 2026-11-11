@@ -1,0 +1,9 @@
+# OS / editor noise
+.DS_Store
+Thumbs.db
+*.swp
+~$*
+
+# local experiments
+*.log
+node_modules/
