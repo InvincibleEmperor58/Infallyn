@@ -7,3 +7,7 @@ Thumbs.db
 # local experiments
 *.log
 node_modules/
+
+# python
+__pycache__/
+*.pyc
