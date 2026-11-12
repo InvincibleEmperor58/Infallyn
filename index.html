@@ -33,7 +33,7 @@ body{
   min-height:100dvh;overscroll-behavior-y:none;transition:background .3s ease,color .3s ease;
 }
 body::before{content:"";position:fixed;inset:0;pointer-events:none;opacity:var(--grain-opacity);z-index:0;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");}
+  background-image:url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABAAgMAAADXB5lNAAAADFBMVEUAAABAQECgoKD///+iAzJqAAAES0lEQVR42gFABL/7AJwIQ8TBMRtJGAfvpUu4NnwAKvCwu45MZfx+e7UVTaHpPwDzxHSASB2rD/hK0ZIpmV14AC5uhHZzg3ePxUd5QHUma0sA1NFcLBYMOb2dz4cYZnT1fgDaIvOgQoZ7eIcghIy5EYWmANogHc/ll4QtDmNbKpJks5QAIcyke2TRAY8HjA4lfzhGpADOHr8YyztQaYn8T+e4isSoAPLiCW5s0PbF+qtvFHe9UYkApP3o6Un/hPw/RUwFJsCeQgDp1OB8nnLtIdl2jXxxHB+BAJcutAix6w22s3MwkqiqAT8AvdJa4dcOcIT9X0qqnVWY5QAwN4kFJ4JKRhLmE8zR7rK8AJ9Nw7UHJaUPZOMXdTeFQj4A5+9D33wbjBINAXlKa22aFwBrYLLrmjUqgW+HQCieW1FwAG4L1ANUBd2Iz81JCi6QZWcAn8NnFAGQEAkxUAsRq4qK4wAyxJxgs3pl0Mo8ya3dKeflALWlaWYR1rkJ8PbGx9U+jdsA82PCVjcr1yK8D6G31R1vngBu3Ka/JsJgShXl0nTC1893AEb7vGAj0ditu4q+pyaQ84AAc0TRMJqcjMPw3w1MARydJAC+AA6cr1J/6oht/eKtJbj1AI9jyHrVRq1OLGKAdrNiXAIA8wpN2VKAsGGzqy91NFJzDgCcmR3b1Kmy8R4m5TtJOcmzAGVVDlWQyrD2WGLCbI8RFSgABjchI+A1X08ytuyZyEtF/AAKCDSKQjcbpLdu+GXyWumBACz4XpY5wz3j+q+P5n0pnAsAr/iwTtf+GokrZdCMIsBeXABQB/CWkgnwcxUWO7He8RbSAOLsOd6ciVGfWn21251CxjEAZCkhnr2Ss3hiTHZyXuCBCQCPYvsd0lZGsZfU2lY19ItCAJLG+kDyj9iKRDaUraZpAx8A2FXw9YNg4xeOcvcK7aFxuQD4VGG3QzQ9cY0geHEmiGsiAIGnMMJbawnwH30pkW76LkcAFuKQcpSpuK5ZU/5GqEa7OQChkT2FECRiGj5ML7CjkFSuAGbLqYyXBBaVJ9vYA4f0i1kAuteaI1tGN2BGYfO4UFwIDQDFSyUkoE6I67739G1AO7PtAOOhrtSWV0uzbKsuz1G2uEgAapsxej4vp1hg/8P/T9FyvAAQMcbNxpGi68p+lG9pyDieAF/UcE0dlUxDb0R5mpXLZHUA7CEuMeheYCWGvaSMHwDeJgBI5gR4tSm1UA1FjyBUSBaNAC8FWVYM4Esn2jfgldz7xuIAw/tkvKJ9E3plu5cEejbLqgDPgPnLSU2Y8+pyUZi5rbyuAPh9hvLuLCqQyU+/peWMH2UAUjniWIgJN4wzalYUuIP0qADf2TZDWYCcpqBsyG8rS2hvAHUHAxK9FsF/Dd9PFNEQzU4AHMFYwALxHRwgQqp5AB/QBwAbmosd6TJoYQug1HFix22gAGQ4AITtK9zpNGoQaRw4QiYmAPNwhamQhAAAAABJRU5ErkJggg==");background-repeat:repeat;background-size:64px 64px}
 button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 input,textarea,select{font:inherit;color:inherit}
 img{max-width:100%;display:block}
@@ -360,6 +360,22 @@ hr.sep{border:none;border-top:1px solid var(--hairline);margin:14px 0}
 .lk-emblem{width:76px;height:76px;border-radius:20px;display:block;margin:2px auto 10px;box-shadow:0 10px 28px rgba(0,0,0,.38)}
 .wl-emblem{width:64px;height:64px;border-radius:16px;display:block;margin:2px auto 12px;box-shadow:var(--shadow)}
 .about-emblem{display:block;width:64px;height:64px;border-radius:16px;margin:2px auto 12px;box-shadow:var(--shadow)}
+
+/* ---------- low-effects mode (?safe=1) ----------
+   Escape hatch for machines whose GPU driver chokes on backdrop-filter or
+   animated compositing: solid overlays, no blur, no entrance motion. */
+[data-fx="low"] #top,
+[data-fx="low"] .dosecard .dc-kind{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+[data-fx="low"] .sheetwrap{background:rgba(12,10,8,.86);backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+[data-fx="low"] body::before{display:none}
+[data-fx="low"] .lk-card,[data-fx="low"] .sheet,[data-fx="low"] .itemrow,[data-fx="low"] .toast{animation:none!important}
+[data-fx="low"] *{transition-duration:.01ms!important}
+
+/* respect the OS setting too */
+@media (prefers-reduced-motion:reduce){
+  .lk-card,.sheet,.itemrow,.toast{animation:none!important}
+  *{transition-duration:.01ms!important}
+}
 </style>
 </head>
 <body>
@@ -616,6 +632,72 @@ const b64 = { enc: buf => btoa(String.fromCharCode(...new Uint8Array(buf))), dec
 function dayKey(ts) { const d = ts instanceof Date ? ts : new Date(ts); return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()); }
 function keyToDate(k) { const [y, m, dd] = k.split('-').map(Number); return new Date(y, m - 1, dd); }
 function keyOffset(k, n) { const d = keyToDate(k); d.setDate(d.getDate() + n); return dayKey(d); }
+
+/* ---------------- boot flags • crash breadcrumb • low-effects mode ----------------
+   A browser that dies mid-flow leaves no console output behind, so each
+   significant step is written to sessionStorage *before* it runs; `?diag=1`
+   then shows the trail. `?safe=1` turns off blur/animated compositing, which
+   is the escape hatch for GPUs whose drivers crash on it. */
+const Boot = (() => {
+  let q; try { q = new URLSearchParams(location.search); } catch (e) { q = new URLSearchParams(''); }
+  const low = q.has('safe') || q.get('fx') === 'low';
+  if (low) { try { document.documentElement.dataset.fx = 'low'; } catch (e) {} }
+  let mem = [];
+  const read = () => { try { const r = JSON.parse(sessionStorage.getItem('infallyn.steps') || '[]'); return Array.isArray(r) ? r : mem; } catch (e) { return mem; } };
+  const write = rows => { mem = rows; try { sessionStorage.setItem('infallyn.steps', JSON.stringify(rows)); } catch (e) {} };
+  const t0 = Date.now();
+  return {
+    low, query: q, t0,
+    mark(step) { try { const rows = read(); rows.push({ t: Date.now() - t0, step: String(step) }); write(rows.slice(-60)); } catch (e) {} },
+    trail: read,
+  };
+})();
+function mark(step) { Boot.mark(step); }
+mark('boot');
+
+function renderDiag() {
+  const rows = Boot.trail();
+  const lines = [
+    'Infallyn diagnostics — ' + new Date().toLocaleString(),
+    '',
+    'WebCrypto:    ' + (!!(window.crypto && crypto.subtle)),
+    'IndexedDB:    ' + (!!window.indexedDB),
+    'localStorage: ' + (Store.persistent ? 'writable' : 'blocked'),
+    'effects:      ' + (Boot.low ? 'low (?safe=1)' : 'full'),
+    'cores / RAM:  ' + (navigator.hardwareConcurrency || '?') + ' / ' + (navigator.deviceMemory || '?') + ' GB',
+    'viewport:     ' + innerWidth + '×' + innerHeight + ' @' + (devicePixelRatio || 1) + 'x',
+    'rendered:     ' + (document.querySelectorAll('*').length) + ' nodes',
+    'UA:           ' + navigator.userAgent,
+    '',
+    '— last ' + rows.length + ' steps (ms since boot) —',
+    ...rows.map(r => '  ' + String(r.t).padStart(6) + '  ' + r.step),
+  ];
+  const box = document.createElement('div');
+  box.id = 'diagpanel';
+  box.style.cssText = 'position:fixed;inset:8px;z-index:99999;background:#0d0d0d;color:#dfe8df;border:1px solid #333;border-radius:12px;padding:12px;overflow:auto;font:12px/1.5 ui-monospace,Menlo,Consolas,monospace';
+  const pre = document.createElement('pre');
+  pre.textContent = lines.join('\n');
+  pre.style.cssText = 'margin:0 0 10px;white-space:pre-wrap';
+  const copy = document.createElement('button');
+  copy.textContent = 'Copy report';
+  copy.style.cssText = 'padding:8px 12px;border-radius:8px;background:#D4A85A;color:#14120F;font-weight:700;margin-right:8px';
+  copy.onclick = () => {
+    const txt = lines.join('\n');
+    try { navigator.clipboard.writeText(txt); copy.textContent = 'Copied'; }
+    catch (e) {
+      const ta = document.createElement('textarea'); ta.value = txt; document.body.appendChild(ta); ta.select();
+      try { document.execCommand('copy'); copy.textContent = 'Copied'; } catch (e2) { copy.textContent = 'Select the text above'; }
+      ta.remove();
+    }
+  };
+  const close = document.createElement('button');
+  close.textContent = 'Close';
+  close.style.cssText = 'padding:8px 12px;border-radius:8px;border:1px solid #444;color:#ddd';
+  close.onclick = () => box.remove();
+  box.append(pre, copy, close);
+  document.body.appendChild(box);
+}
+if (Boot.query.has('diag')) setTimeout(renderDiag, 900);
 function daysBetween(a, b) { return Math.round((keyToDate(b) - keyToDate(a)) / DAY); }
 const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 const WDAYS  = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
@@ -1164,9 +1246,13 @@ const Auth = {
     if (this.exists(u)) throw 'That name is taken on this device.';
     if (typeof pass !== 'string' || pass.length < 6) throw 'Passphrase needs at least 6 characters.';
     if (opts.pass2 != null && pass !== opts.pass2) throw 'Passphrases do not match.';
+    mark('acct:create');
     const salt = b64.enc(crypto.getRandomValues(new Uint8Array(16)));
+    mark('acct:derive');
     const key = await this.deriveKey(pass, salt);
+    mark('acct:key');
     const verifier = await this.encJSON(key, { v: this.VAULT_VERIFIER });
+    mark('acct:verifier');
     const accs = this.accounts();
     accs[u] = { salt, verifier, hint: opts.hint || '', createdAt: Date.now(), hue: this.hue(u) };
     this.saveAccounts(accs);
@@ -1182,10 +1268,14 @@ const Auth = {
     } else {
       freshState(!!opts.seed);
     }
+    mark('acct:seed');
     this.session = { user: u, key, stay: false };
     Media.setContext(u, key);
+    mark('acct:media');
     await Media.migrateLegacy();
+    mark('acct:persist');
     await this.persistNow();
+    mark('acct:done');
     if (opts.adopt) Store.del(LS_KEY);
     if (opts.stay) await this.enableStay(u, key);
     Store.set('infallyn.lastuser', u);
@@ -1197,15 +1287,20 @@ const Auth = {
     const a = this.accounts()[u];
     if (!a) throw 'No account with that name on this device.';
     let key;
+    mark('unlock:derive');
     try { key = await this.deriveKey(pass, a.salt); } catch (e) { throw 'Could not derive key — try again.'; }
     let ok = false;
     try { ok = (await this.decJSON(key, a.verifier)).v === this.VAULT_VERIFIER; } catch (e) { ok = false; }
     if (!ok) throw 'Wrong passphrase for ' + u + '.';
+    mark('unlock:verified');
     this.session = { user: u, key, stay: !!Store.get(this.autoKey(u)) };
     Media.setContext(u, key);
     await Media.migrateLegacy();
+    mark('unlock:load');
     await this.loadVault(u, key);
+    mark('unlock:persist');
     await this.persistNow();
+    mark('unlock:done');
     Store.set('infallyn.lastuser', u);
     return u;
   },
@@ -1280,6 +1375,7 @@ window.Auth = Auth;
 const LK = {
   mode: 'login', sel: null, fails: 0, bound: false,
   show(mode, presetMsg) {
+    mark('lockscreen:' + (mode || 'login'));
     this.mode = mode || 'login';
     this.render(presetMsg || '');
     qs('#lockscreen').classList.add('on');
@@ -1372,6 +1468,7 @@ const LK = {
     this.setBusy(false);
   },
   async doCreate() {
+    mark('create:submit');
     const u = qs('#lk-user').value, p = qs('#lk-pass').value, p2 = qs('#lk-pass2') ? qs('#lk-pass2').value : null;
     this.setBusy(true);
     try {
@@ -1382,6 +1479,7 @@ const LK = {
     this.setBusy(false);
   },
   async afterUnlock(reason) {
+    mark('afterUnlock:' + reason);
     qs('#lockscreen').classList.remove('on');
     if (typeof startApp === 'function') startApp(reason);
     if (reason === 'unlock') toast('Welcome back, ' + Auth.session.user + '.');
@@ -2483,6 +2581,7 @@ function restartTick() {
   setTimeout(() => { if (Auth.session) tick(); }, 900);
 }
 function startApp(reason) {
+  mark('startApp:' + (reason || ''));
   applyTheme();
   bindApp();
   if (!location.hash) { try { location.hash = '#/shelf'; } catch (e) {} }

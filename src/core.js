@@ -18,6 +18,72 @@ const b64 = { enc: buf => btoa(String.fromCharCode(...new Uint8Array(buf))), dec
 function dayKey(ts) { const d = ts instanceof Date ? ts : new Date(ts); return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()); }
 function keyToDate(k) { const [y, m, dd] = k.split('-').map(Number); return new Date(y, m - 1, dd); }
 function keyOffset(k, n) { const d = keyToDate(k); d.setDate(d.getDate() + n); return dayKey(d); }
+
+/* ---------------- boot flags • crash breadcrumb • low-effects mode ----------------
+   A browser that dies mid-flow leaves no console output behind, so each
+   significant step is written to sessionStorage *before* it runs; `?diag=1`
+   then shows the trail. `?safe=1` turns off blur/animated compositing, which
+   is the escape hatch for GPUs whose drivers crash on it. */
+const Boot = (() => {
+  let q; try { q = new URLSearchParams(location.search); } catch (e) { q = new URLSearchParams(''); }
+  const low = q.has('safe') || q.get('fx') === 'low';
+  if (low) { try { document.documentElement.dataset.fx = 'low'; } catch (e) {} }
+  let mem = [];
+  const read = () => { try { const r = JSON.parse(sessionStorage.getItem('infallyn.steps') || '[]'); return Array.isArray(r) ? r : mem; } catch (e) { return mem; } };
+  const write = rows => { mem = rows; try { sessionStorage.setItem('infallyn.steps', JSON.stringify(rows)); } catch (e) {} };
+  const t0 = Date.now();
+  return {
+    low, query: q, t0,
+    mark(step) { try { const rows = read(); rows.push({ t: Date.now() - t0, step: String(step) }); write(rows.slice(-60)); } catch (e) {} },
+    trail: read,
+  };
+})();
+function mark(step) { Boot.mark(step); }
+mark('boot');
+
+function renderDiag() {
+  const rows = Boot.trail();
+  const lines = [
+    'Infallyn diagnostics — ' + new Date().toLocaleString(),
+    '',
+    'WebCrypto:    ' + (!!(window.crypto && crypto.subtle)),
+    'IndexedDB:    ' + (!!window.indexedDB),
+    'localStorage: ' + (Store.persistent ? 'writable' : 'blocked'),
+    'effects:      ' + (Boot.low ? 'low (?safe=1)' : 'full'),
+    'cores / RAM:  ' + (navigator.hardwareConcurrency || '?') + ' / ' + (navigator.deviceMemory || '?') + ' GB',
+    'viewport:     ' + innerWidth + '×' + innerHeight + ' @' + (devicePixelRatio || 1) + 'x',
+    'rendered:     ' + (document.querySelectorAll('*').length) + ' nodes',
+    'UA:           ' + navigator.userAgent,
+    '',
+    '— last ' + rows.length + ' steps (ms since boot) —',
+    ...rows.map(r => '  ' + String(r.t).padStart(6) + '  ' + r.step),
+  ];
+  const box = document.createElement('div');
+  box.id = 'diagpanel';
+  box.style.cssText = 'position:fixed;inset:8px;z-index:99999;background:#0d0d0d;color:#dfe8df;border:1px solid #333;border-radius:12px;padding:12px;overflow:auto;font:12px/1.5 ui-monospace,Menlo,Consolas,monospace';
+  const pre = document.createElement('pre');
+  pre.textContent = lines.join('\n');
+  pre.style.cssText = 'margin:0 0 10px;white-space:pre-wrap';
+  const copy = document.createElement('button');
+  copy.textContent = 'Copy report';
+  copy.style.cssText = 'padding:8px 12px;border-radius:8px;background:#D4A85A;color:#14120F;font-weight:700;margin-right:8px';
+  copy.onclick = () => {
+    const txt = lines.join('\n');
+    try { navigator.clipboard.writeText(txt); copy.textContent = 'Copied'; }
+    catch (e) {
+      const ta = document.createElement('textarea'); ta.value = txt; document.body.appendChild(ta); ta.select();
+      try { document.execCommand('copy'); copy.textContent = 'Copied'; } catch (e2) { copy.textContent = 'Select the text above'; }
+      ta.remove();
+    }
+  };
+  const close = document.createElement('button');
+  close.textContent = 'Close';
+  close.style.cssText = 'padding:8px 12px;border-radius:8px;border:1px solid #444;color:#ddd';
+  close.onclick = () => box.remove();
+  box.append(pre, copy, close);
+  document.body.appendChild(box);
+}
+if (Boot.query.has('diag')) setTimeout(renderDiag, 900);
 function daysBetween(a, b) { return Math.round((keyToDate(b) - keyToDate(a)) / DAY); }
 const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 const WDAYS  = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
