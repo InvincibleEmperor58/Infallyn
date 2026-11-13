@@ -96,14 +96,25 @@ shallowly, so a theme change on one device does not wipe another's dose time.
 
 1. Create a project at <https://supabase.com> (free tier is enough).
 2. **SQL Editor** → paste `supabase/schema.sql` → **Run**.
-3. **Authentication → Providers → Email**: enable it. For the 6-digit code
-   flow keep *Confirm email* on; Supabase mails the `{{ .Token }}` value.
-4. **Project Settings → API**: copy the **Project URL** and the **anon public**
+3. **Authentication → Sign In / Providers → Email**: make sure the Email
+   provider is enabled.
+4. **Authentication → URL Configuration**: set **Site URL** to your app URL
+   (`https://invincibleemperor58.github.io/Infallyn/`) and add the same value
+   under **Redirect URLs**. Without this the e-mailed link points at localhost.
+5. **Authentication → Email Templates → Magic Link** — either leave it as a
+   link (Infallyn adopts the `#access_token=…` fragment when it opens) or add a
+   line `Code: {{ .Token }}` to the template, which enables the 6-digit box.
+6. **Project Settings → API**: copy the **Project URL** and the **anon public**
    key.
-5. In Infallyn → **You → Sync** → paste both → **Save project**.
-6. **Email me a code** → enter the 6 digits → **Verify**.
-7. Choose a **sync passphrase** → **Connect this device**.
-8. On the phone: same URL, same e-mail, same sync passphrase. Done.
+7. In Infallyn → **You → Sync** → paste both → **Save project**.
+8. **Email me a code** → open the link on that device *or* type the 6 digits →
+   **Verify & sign in**.
+9. Choose a **sync passphrase** (min 6 chars) → **Connect this device**.
+10. On the phone: same URL, same e-mail, same sync passphrase. Done.
+
+Both e-mail styles work: the link signs the device in when it opens (tokens in
+the URL fragment are adopted, then stripped from the address bar), and the code
+box works when the template includes `{{ .Token }}`.
 
 The anon key and URL are stored in that browser's `localStorage` only; nothing
 project-specific is committed to the repo.
@@ -112,10 +123,30 @@ project-specific is committed to the repo.
 
 `/tmp` harness (jsdom + in-memory Supabase): two independent device contexts —
 separate `localStorage` and separate IndexedDB factories — exchanging through a
-mocked REST + Storage API. Covers: account creation on both devices, space
-creation vs joining, key unwrap with the right/wrong passphrase, item + card +
-review propagation both ways, tombstone/delete propagation, photo round-trip,
-and conflict resolution by `lww`.
+mocked REST + Storage API.
+
+**14/14 sync checks** — space created on A, B joins without creating a second
+space, B adopts the existing space instead of pushing duplicate samples
+(`A=9 B=9 dupes=0`), items flow both ways, photo uploaded and decrypted
+byte-identically on B while the storage object is ciphertext, deletes propagate
+as tombstones, newer edit wins, a wrong passphrase is refused, every row is
+owned by the signed-in user.
+
+**12/12 UI checks** — panel states in order, invalid project URL refused with a
+hint, `/auth/v1/otp` actually called, bad code surfaces an error, project
+survives a re-render, clearing returns to the setup form.
+
+**4/4 magic-link checks** — token fragment adopted, e-mail read back via
+`/auth/v1/user`, tokens stripped from the address bar, panel advances to the
+passphrase step.
+
+**Self-tests unchanged at 8/10**; the two failures (`queue: cap + interleave
+new`, `streak: grace night bridges one gap/week`) are pre-existing.
+
+The sync suite is run **six times back to back** — repeating it is what exposed a
+genuine race: `seededAt` was stamped at the *start* of seeding, so an item
+created a millisecond later looked like real user content and blocked adoption
+(8 duplicate samples). It is now stamped after seeding, with a 5 s tolerance.
 
 Still to do against a real project: RLS enforcement under the anon key, the
 OTP e-mail template, storage policy edge cases, and multi-thousand-row paging.
