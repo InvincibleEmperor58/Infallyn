@@ -73,7 +73,7 @@ typing fix on the lock screen, OCR round-trip, dose flow, persistence, zero page
 2. **Recurring tasks** — RRULE subset (daily/weekly/monthly); completion schedules next.
 3. **Document snippets as dose cards** — region-crop from PDFs/images; pairs with doc viewer.
 4. **Local stats page** — per-pillar analytics computed from existing `reviews`/`sessions`.
-5. **Multi-device sync (big)** — oplog design already sketched in spec §4.2 (E2E-encrypted).
+5. ~~**Multi-device sync (big)**~~ — **implemented in v1.3** as E2E-encrypted per-entity LWW sync over Supabase Auth/PostgREST/Storage. See `docs/sync.md` (design, threat model, setup) and `supabase/schema.sql` (tables, RLS, bucket). Needs a live project to verify RLS + OTP email end-to-end.
 6. **Accessibility pass** — full keyboard traversal audit, ARIA live regions for toasts.
 
 ## 6. Working convention

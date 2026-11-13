@@ -226,7 +226,7 @@ const LK = {
           ${accs.length ? '' : '<span class="lk-mini">First one here? Infallyn starts once you create an account.</span>'}
         </div>
         ${legacy ? '<button class="lk-link lk-claim" id="lk-claim">♻ Found your existing content — claim it with a passphrase</button>' : ''}
-        <p class="lk-note">🔒 AES-256 encrypted on this device · your passphrase never leaves the browser · no server, no tracking</p>`;
+        <p class="lk-note">🔒 AES-256 encrypted on this device · your passphrase never leaves the browser · no tracking</p>`;
       this.bindLogin();
     } else {
       el.innerHTML = `
