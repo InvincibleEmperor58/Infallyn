@@ -491,6 +491,7 @@ function seedData() {
   mk({ kind: 'note', itemId: S.items[S.items.length - 1].id, caption: S.items[S.items.length - 1].title, back: S.items[S.items.length - 1].body, due: now + 2 * DAY });
   // seed a small streak history (sample)
   for (let k = 1; k <= 3; k++) S.sessions[keyOffset(dayKey(now), -k)] = { reviewed: 9 + k, completed: true };
+  S.seededAt = now;   /* marker: everything above is sample content */
 }
 
 /* ---------------- self tests ---------------- */
