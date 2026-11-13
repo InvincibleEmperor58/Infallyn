@@ -522,6 +522,7 @@ function restartTick() {
   setTimeout(() => { if (Auth.session) tick(); }, 900);
 }
 function startApp(reason) {
+  mark('startApp:' + (reason || ''));
   applyTheme();
   bindApp();
   if (!location.hash) { try { location.hash = '#/shelf'; } catch (e) {} }

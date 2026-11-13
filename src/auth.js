@@ -67,9 +67,13 @@ const Auth = {
     if (this.exists(u)) throw 'That name is taken on this device.';
     if (typeof pass !== 'string' || pass.length < 6) throw 'Passphrase needs at least 6 characters.';
     if (opts.pass2 != null && pass !== opts.pass2) throw 'Passphrases do not match.';
+    mark('acct:create');
     const salt = b64.enc(crypto.getRandomValues(new Uint8Array(16)));
+    mark('acct:derive');
     const key = await this.deriveKey(pass, salt);
+    mark('acct:key');
     const verifier = await this.encJSON(key, { v: this.VAULT_VERIFIER });
+    mark('acct:verifier');
     const accs = this.accounts();
     accs[u] = { salt, verifier, hint: opts.hint || '', createdAt: Date.now(), hue: this.hue(u) };
     this.saveAccounts(accs);
@@ -85,10 +89,14 @@ const Auth = {
     } else {
       freshState(!!opts.seed);
     }
+    mark('acct:seed');
     this.session = { user: u, key, stay: false };
     Media.setContext(u, key);
+    mark('acct:media');
     await Media.migrateLegacy();
+    mark('acct:persist');
     await this.persistNow();
+    mark('acct:done');
     if (opts.adopt) Store.del(LS_KEY);
     if (opts.stay) await this.enableStay(u, key);
     Store.set('infallyn.lastuser', u);
@@ -100,15 +108,20 @@ const Auth = {
     const a = this.accounts()[u];
     if (!a) throw 'No account with that name on this device.';
     let key;
+    mark('unlock:derive');
     try { key = await this.deriveKey(pass, a.salt); } catch (e) { throw 'Could not derive key — try again.'; }
     let ok = false;
     try { ok = (await this.decJSON(key, a.verifier)).v === this.VAULT_VERIFIER; } catch (e) { ok = false; }
     if (!ok) throw 'Wrong passphrase for ' + u + '.';
+    mark('unlock:verified');
     this.session = { user: u, key, stay: !!Store.get(this.autoKey(u)) };
     Media.setContext(u, key);
     await Media.migrateLegacy();
+    mark('unlock:load');
     await this.loadVault(u, key);
+    mark('unlock:persist');
     await this.persistNow();
+    mark('unlock:done');
     Store.set('infallyn.lastuser', u);
     return u;
   },
@@ -183,6 +196,7 @@ window.Auth = Auth;
 const LK = {
   mode: 'login', sel: null, fails: 0, bound: false,
   show(mode, presetMsg) {
+    mark('lockscreen:' + (mode || 'login'));
     this.mode = mode || 'login';
     this.render(presetMsg || '');
     qs('#lockscreen').classList.add('on');
@@ -275,6 +289,7 @@ const LK = {
     this.setBusy(false);
   },
   async doCreate() {
+    mark('create:submit');
     const u = qs('#lk-user').value, p = qs('#lk-pass').value, p2 = qs('#lk-pass2') ? qs('#lk-pass2').value : null;
     this.setBusy(true);
     try {
@@ -285,6 +300,7 @@ const LK = {
     this.setBusy(false);
   },
   async afterUnlock(reason) {
+    mark('afterUnlock:' + reason);
     qs('#lockscreen').classList.remove('on');
     if (typeof startApp === 'function') startApp(reason);
     if (reason === 'unlock') toast('Welcome back, ' + Auth.session.user + '.');
