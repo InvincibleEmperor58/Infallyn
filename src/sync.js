@@ -180,6 +180,35 @@ const Sync = (() => {
     return email;
   }
 
+  /* A magic link returns to the app with tokens in the URL fragment
+     (#access_token=…&refresh_token=…). Adopt them so the e-mail link works
+     as well as the 6-digit code. */
+  async function adoptUrlTokens() {
+    const frag = String(location.hash || '').slice(1);
+    const qs_ = String(location.search || '').slice(1);
+    const raw = frag.includes('access_token') ? frag : (qs_.includes('access_token') ? qs_ : '');
+    if (!raw) return false;
+    const p = new URLSearchParams(raw);
+    const at = p.get('access_token'), rt = p.get('refresh_token');
+    if (!at || !rt) return false;
+    try {
+      const cfg = config();
+      if (!cfg.url) return false;
+      const res = await fetch(cfg.url + '/auth/v1/user', { headers: { apikey: cfg.anonKey, Authorization: 'Bearer ' + at } });
+      if (!res.ok) return false;
+      const u = await res.json();
+      if (!u || !u.id) return false;
+      saveSession({
+        access_token: at, refresh_token: rt,
+        expires_at: Date.now() + (+p.get('expires_in') || 3600) * 1000,
+        email: u.email || '', uid: u.id,
+      });
+      try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {}
+      panelMsg = 'Signed in as ' + (u.email || 'your account') + '.';
+      return true;
+    } catch (e) { return false; }
+  }
+
   /* ---------------- space key ---------------- */
   async function loadSpaces() {
     const rows = await req('/rest/v1/spaces?select=kdf_salt,key_wrap&limit=1');
@@ -240,7 +269,7 @@ const Sync = (() => {
   function isSampleOnly() {
     if (!S.seededAt) return false;
     if ((S.reviews || []).length) return false;      // studied anything -> real use
-    const t = S.seededAt;
+    const t = S.seededAt + 5000;   // tolerance: seeding can straddle a few ms
     const old = (o) => !o.createdAt || o.createdAt <= t;
     return (S.items || []).every(old) && (S.cards || []).every(old);
   }
@@ -588,9 +617,11 @@ const Sync = (() => {
     clearInterval(autoTimer);
     autoTimer = setInterval(() => { if (document.visibilityState !== 'hidden' && ready() && !S0.busy) run({}).catch(() => {}); }, 120000);
   }
-  function bootAuto() {
+  async function bootAuto() {
     startAuto();
+    if (!signedIn()) { try { await adoptUrlTokens(); } catch (e) {} }
     setTimeout(() => { if (signedIn() && !S0.busy) run({}).catch(() => {}); }, 2500);
+    if (typeof renderYou === 'function' && UIState && UIState.tab === 'you') setTimeout(() => renderYou(), 300);
   }
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible' && ready() && !S0.busy) run({}).catch(() => {});
@@ -598,7 +629,7 @@ const Sync = (() => {
 
   return {
     config, configure, status, sendCode, verifyCode, enableWithPassphrase,
-    run, forget, renderPanel, mount, bootAuto, ready, session, signedIn,
+    run, forget, renderPanel, mount, bootAuto, adoptUrlTokens, ready, session, signedIn,
     _internals: { collect, canonical, seal, unseal, wrapKeyFor, applyRemote, pushChanged, meta, saveMeta },
   };
 })();
