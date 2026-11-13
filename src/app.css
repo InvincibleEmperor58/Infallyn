@@ -318,10 +318,16 @@ hr.sep{border:none;border-top:1px solid var(--hairline);margin:14px 0}
 .lk-ava{width:44px;height:44px;border-radius:50%;color:#fff;font-weight:800;font-size:18px;display:inline-grid;place-items:center;flex:none;text-transform:uppercase}
 
 /* ---------- lock screen ---------- */
-#lockscreen{position:fixed;inset:0;z-index:200;display:none;align-items:center;justify-content:center;padding:20px;
+/* Lock screen scrolls when the form is taller than the viewport (the create
+   form is ~660px). align-items:center on a fixed, non-scrolling box clips the
+   overflow above AND below, which hid the "Create my Infallyn" button on
+   ~657px-tall laptop viewports; auto margins centre it only when it fits. */
+#lockscreen{position:fixed;inset:0;z-index:200;display:none;align-items:flex-start;justify-content:center;
+  padding:24px 20px calc(32px + env(safe-area-inset-bottom));overflow-y:auto;overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;scroll-padding-block:24px;
   background:radial-gradient(1200px 700px at 50% -10%, color-mix(in srgb,var(--accent) 9%,var(--bg)), var(--bg) 60%)}
 #lockscreen.on{display:flex}
-.lk-card{width:100%;max-width:400px;background:var(--surface);border:1px solid var(--hairline);border-radius:26px;box-shadow:0 20px 60px rgba(0,0,0,.35);padding:26px 22px;animation:sheetup .3s cubic-bezier(.2,.9,.3,1)}
+.lk-card{width:100%;max-width:400px;margin:auto;background:var(--surface);border:1px solid var(--hairline);border-radius:26px;box-shadow:0 20px 60px rgba(0,0,0,.35);padding:26px 22px;animation:sheetup .3s cubic-bezier(.2,.9,.3,1)}
 .lk-card.shake{animation:lkshake .4s ease}
 @keyframes lkshake{0%,100%{transform:none}20%{transform:translateX(-9px)}40%{transform:translateX(8px)}60%{transform:translateX(-5px)}80%{transform:translateX(3px)}}
 .lk-brand{font-size:30px;font-weight:600;text-align:center;margin:6px 0 4px;color:var(--ink)}
@@ -361,4 +367,11 @@ hr.sep{border:none;border-top:1px solid var(--hairline);margin:14px 0}
 @media (prefers-reduced-motion:reduce){
   .lk-card,.sheet,.itemrow,.toast{animation:none!important}
   *{transition-duration:.01ms!important}
+}
+
+/* short laptop viewports: tighten the lock card so the submit button is on screen */
+@media (max-height:700px){
+  .lk-card{padding:18px 20px}
+  .lk-tag{margin-bottom:12px}
+  .lk-emblem{width:64px}
 }
