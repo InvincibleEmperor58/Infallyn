@@ -2,7 +2,7 @@
 
 # Infallyn
 
-> **Your quiet room for study & memory.** A private, offline-first study platform in a
+> **Create the Infallible version of you!** A private, offline-first study platform in a
 > **single HTML file** — tasks & documents, a nightly spaced-repetition *Daily Dose*,
 > handwriting **OCR → audio**, glanceable widgets, and **passphrase-encrypted personal
 > accounts**. No frameworks. No build step to run it. No server. No tracking.
